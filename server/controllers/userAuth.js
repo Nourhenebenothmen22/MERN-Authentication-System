@@ -2,15 +2,16 @@
 import User from "../models/user.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+import transporter from "../utils/mailer.js";
 
 /**
- * @desc Register a new user
+ * @desc Register a new user and send a welcome email
  * @route POST /api/auth/register
  * @access Public
  */
 export const register = async (req, res) => {
   try {
-    const { name, password, email } = req.body;
+    const { name, password, email, role } = req.body;
 
     // 🧩 Validate required fields
     if (!name || !password || !email) {
@@ -37,8 +38,8 @@ export const register = async (req, res) => {
       name,
       email,
       password: hashedPassword,
+      role: ["user", "admin"].includes(role) ? role : "user", // default to "user" if invalid
     });
-
     await newUser.save();
 
     // 🎟️ Generate JWT token
@@ -48,13 +49,30 @@ export const register = async (req, res) => {
       { expiresIn: "7d" }
     );
 
-    // 🍪 Set secure HTTP-only cookie
+    // 🍪 Set HTTP-only cookie
     res.cookie("token", token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     });
+
+    // ✉️ Send welcome email
+    const mailOptions = {
+      from: process.env.SENDER_EMAIL,
+      to: email,
+      subject: "🚀 Welcome to NourheneDevHub 🌟",
+      text: `Hello ${name}! 👋
+
+Your account has been successfully created at NourheneDevHub — the place where dev dreams come alive! 💻✨
+Your registered email is: ${email}
+
+Get ready to code, create, and conquer! 🚀
+
+Cheers,
+The NourheneDevHub Team 💡`,
+    };
+    await transporter.sendMail(mailOptions);
 
     // ✅ Success response
     return res.status(201).json({
@@ -78,6 +96,7 @@ export const register = async (req, res) => {
     });
   }
 };
+
 
 /**
  * @desc Login an existing user
@@ -181,5 +200,3 @@ export const logout = async (req, res) => {
     });
   }
 };
-
-
