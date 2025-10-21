@@ -10,6 +10,7 @@ import rateLimit from "express-rate-limit";
 import connectDB from "./utils/db.js";
 import cors from "cors";
 import cookieParser from "cookie-parser";
+import AuthRoutes from "./routes/AuthRoutes.js";
 
 // ==============================================
 // 🧰 Load environment variables
@@ -76,6 +77,9 @@ app.use(limiter);
 app.get("/", (req, res) => {
   res.json({ message: "Express server with MongoDB and rate limit is running ✅" });
 });
+
+app.use("/api/auth", AuthRoutes);
+
 
 // ==============================================
 // 🖥️ Start the Server
