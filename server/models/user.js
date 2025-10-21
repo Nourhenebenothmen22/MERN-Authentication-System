@@ -1,16 +1,24 @@
 import mongoose from "mongoose";
 
-// ==========================
-// 👤 User Schema Definition
-// ==========================
+// ============================================
+// 👤 User Schema — with full validation & docs
+// ============================================
+
+/**
+ * This schema defines the structure of user documents
+ * stored in MongoDB. It includes authentication fields,
+ * email verification, password reset tokens, and security settings.
+ */
+
 const userSchema = new mongoose.Schema(
   {
+    // 🧾 Basic Information
     name: {
       type: String,
       required: [true, "Name is required"],
       trim: true,
-      minlength: 2,
-      maxlength:10,
+      minlength: [2, "Name must be at least 2 characters long"],
+      maxlength: [30, "Name must not exceed 30 characters"],
     },
 
     email: {
@@ -19,32 +27,68 @@ const userSchema = new mongoose.Schema(
       unique: true,
       trim: true,
       lowercase: true,
-      match: [/^\S+@\S+\.\S+$/, "Please provide a valid email address"],
+      match: [
+        /^\S+@\S+\.\S+$/,
+        "Please provide a valid email address (e.g. user@example.com)",
+      ],
     },
 
+    // 🔐 Security & Authentication
     password: {
       type: String,
       required: [true, "Password is required"],
-      minlength: 6,
-      select: false, // Don't return password in queries by default
+      minlength: [6, "Password must be at least 6 characters long"],
+      select: false, // Exclude from queries by default for security
     },
 
     role: {
       type: String,
       enum: ["user", "admin"],
       default: "user",
+      required: true,
     },
 
+    // 🖼️ Profile
     avatar: {
-      type: String, // You can store image URL or filename
+      type: String,
+      default: "", // Can store image URL or filename
+    },
+
+    // ✅ Email Verification Fields
+    verifyOtp: {
+      type: String,
       default: "",
     },
+    verifyOtpExpireAt: {
+      type: Number, // store timestamp (ms)
+      default: 0,
+    },
+    isAccountVerified: {
+      type: Boolean,
+      default: false,
+    },
+
+    // 🔁 Password Reset Fields
+    resetOtp: {
+      type: String,
+      default: "",
+      select: false,
+    },
+    resetOtpExpireAt: {
+      type: Number,
+      default: 0,
+      select: false,
+    },
   },
-  { timestamps: true } // Automatically adds createdAt and updatedAt
+  {
+    timestamps: true, // adds createdAt and updatedAt automatically
+  }
 );
 
-// ==========================
-// 📦 Export Model
-// ==========================
+
+
+// ============================================
+// 📦 Export Mongoose Model
+// ============================================
 const User = mongoose.model("User", userSchema);
 export default User;
