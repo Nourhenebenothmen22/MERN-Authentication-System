@@ -200,3 +200,56 @@ export const logout = async (req, res) => {
     });
   }
 };
+export const sendVerifyOtp = async (req, res) => {
+  try {
+    const { id } = req.body; // ✅ destructuration
+    const user = await User.findById(id);
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // ✅ si déjà vérifié
+    if (user.isAccountVerified) {
+      return res.status(400).json({ message: "Account already verified" });
+    }
+
+    // ✅ génération OTP 6 chiffres
+    const otp = String(Math.floor(100000 + Math.random() * 900000));
+
+    // ✅ assigner OTP et date d’expiration
+    user.verifyOtp = otp;
+    user.verifyOtpExpireAt = Date.now() + 24 * 60 * 60 * 1000; // 24h
+    await user.save();
+
+    // ✅ préparation du mail
+    const mailOptions = {
+      from: process.env.SENDER_EMAIL,
+      to: user.email,
+      subject: "🚀 Verify your NourheneDevHub account",
+      text: `Hello ${user.name || "developer"} 👋,
+
+Here is your verification code for NourheneDevHub: ${otp}
+
+This code will expire in 24 hours ⏰.
+
+If you didn’t request this, please ignore this email.
+
+Cheers,
+The NourheneDevHub Team 💡`,
+    };
+
+    // ✅ envoi du mail
+    await transporter.sendMail(mailOptions);
+
+    return res.status(200).json({
+      message: "Verification OTP sent successfully to your email!",
+    });
+  } catch (error) {
+    console.error("Error sending OTP:", error);
+    return res.status(500).json({
+      message: "Server error while sending OTP",
+      error: error.message,
+    });
+  }
+};
