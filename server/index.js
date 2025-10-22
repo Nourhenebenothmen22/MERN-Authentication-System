@@ -11,6 +11,7 @@ import connectDB from "./utils/db.js";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import AuthRoutes from "./routes/AuthRoutes.js";
+import { swaggerDocs } from "./swagger.js";
 
 // ==============================================
 // 🧰 Load environment variables
@@ -79,6 +80,8 @@ app.get("/", (req, res) => {
 });
 
 app.use("/api/auth", AuthRoutes);
+swaggerDocs(app, PORT);
+
 
 
 // ==============================================
