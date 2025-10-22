@@ -48,12 +48,6 @@ const userSchema = new mongoose.Schema(
       required: true,
     },
 
-    // 🖼️ Profile
-    avatar: {
-      type: String,
-      default: "", // Can store image URL or filename
-    },
-
     // ✅ Email Verification Fields
     verifyOtp: {
       type: String,
