@@ -8,20 +8,36 @@ const options = {
     info: {
       title: "MERN Authentication API",
       version: "1.0.0",
-      description: "API pour gérer l’authentification des utilisateurs (register/login)",
+      description: "API pour gérer l’authentification des utilisateurs (register, login, etc.)",
     },
     servers: [
       {
         url: "http://localhost:5000/api",
+        description: "Serveur local",
+      },
+    ],
+    components: {
+      securitySchemes: {
+        bearerAuth: {
+          type: "http",
+          scheme: "bearer",
+          bearerFormat: "JWT",
+        },
+      },
+    },
+    security: [
+      {
+        bearerAuth: [],
       },
     ],
   },
-  apis: ["./routes/*.js"], // chemin vers tes routes avec annotations Swagger
+  // 🔥 Assure-toi que le chemin est correct selon ta structure
+  apis: ["./routes/*.js"],
 };
 
 const specs = swaggerJsdoc(options);
 
 export const swaggerDocs = (app, port) => {
-  app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(specs));
-  console.log(`✅ Swagger docs available at http://localhost:${port}/api-docs`);
+  app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(specs, { explorer: true }));
+  console.log(`✅ Swagger docs disponibles sur : http://localhost:${port}/api-docs`);
 };
