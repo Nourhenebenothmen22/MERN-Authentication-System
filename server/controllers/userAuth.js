@@ -314,3 +314,52 @@ export const checkAuth = async (req, res) => {
     return res.status(500).json({ message: "Server error" });
   }
 };
+export const sendResetOtp = async (req, res) => {
+  try {
+    const { email } = req.body; // ✅ destructuring
+    if (!email) {
+      return res.status(400).json({ message: "Missing email" });
+    }
+
+    // 🔍 Check if user exists
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // ✅ Generate 6-digit OTP
+    const resetOtp = String(Math.floor(100000 + Math.random() * 900000));
+
+    // 🕒 Set OTP and expiry time (24 hours)
+    user.resetOtp = resetOtp;
+    user.resetOtpExpireAt = Date.now() + 24 * 60 * 60 * 1000;
+    await user.save();
+
+    // ✉️ Send OTP email
+    const mailOptions = {
+      from: process.env.SENDER_EMAIL,
+      to: user.email,
+      subject: "🔐 Password Reset Request",
+      text: `Hello ${user.name || "user"} 👋,
+
+You requested to reset your password.
+Here is your reset OTP code: ${resetOtp}
+
+This code will expire in 24 hours ⏰.
+
+If you didn’t request a password reset, please ignore this email.
+
+Cheers,
+The NourheneDevHub Team 💡`,
+    };
+
+    await transporter.sendMail(mailOptions);
+
+    return res.status(200).json({
+      message: "Reset OTP sent successfully to your email 📧",
+    });
+  } catch (error) {
+    console.error("Error sending reset OTP:", error);
+    return res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
