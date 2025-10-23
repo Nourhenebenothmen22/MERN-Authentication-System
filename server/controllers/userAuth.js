@@ -293,3 +293,24 @@ export const verifyEmail = async (req, res) => {
     return res.status(500).json({ message: "Server error" });
   }
 };
+export const checkAuth = async (req, res) => {
+  try {
+    if (req.user) {
+      return res.status(200).json({
+        success: true,
+        message: "User is authenticated ✅",
+        user: {
+          id: req.user._id,
+          name: req.user.name,
+          email: req.user.email,
+          role: req.user.role,
+        },
+      });
+    }
+
+    return res.status(401).json({ success: false, message: "Not authenticated ❌" });
+  } catch (error) {
+    console.error("Auth check error:", error);
+    return res.status(500).json({ message: "Server error" });
+  }
+};
