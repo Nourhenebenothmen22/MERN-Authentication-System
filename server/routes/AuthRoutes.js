@@ -1,5 +1,6 @@
 import express from "express";
-import { register, login, logout } from "../controllers/userAuth.js";
+import { register, login, logout, sendVerifyOtp, verifyEmail } from "../controllers/userAuth.js";
+import userAuth from "../middlewares/AuthMiddleware.js";
 
 const router = express.Router();
 
@@ -107,5 +108,7 @@ router.post("/login", login);
  *         description: Non authentifié ou token invalide
  */
 router.post("/logout", logout);
+router.post("/send-verify-otp",userAuth,sendVerifyOtp)
+router.post('/verify-account',userAuth,verifyEmail)
 
 export default router;
