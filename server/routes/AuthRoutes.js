@@ -108,7 +108,7 @@ router.post("/login", login);
  *         description: Non authentifié ou token invalide
  */
 router.post("/logout", logout);
-router.post("/send-verify-otp",userAuth,sendVerifyOtp)
+router.post("/send-verify-otp",sendVerifyOtp)
 router.post('/verify-account',userAuth,verifyEmail)
 
 export default router;
