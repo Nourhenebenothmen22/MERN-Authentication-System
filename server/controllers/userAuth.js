@@ -363,3 +363,50 @@ The NourheneDevHub Team 💡`,
     return res.status(500).json({ message: "Server error", error: error.message });
   }
 };
+export const resetPassword = async (req, res) => {
+  try {
+    const { otp, email, newPassword } = req.body;
+
+    if (!otp || !email || !newPassword) {
+      return res.status(400).json({ message: "Missing details" });
+    }
+
+    const user = await User.findOne({ email }).select("+resetOtp +resetOtpExpireAt");
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    if (!user.resetOtp || String(user.resetOtp) !== String(otp)) {
+      return res.status(400).json({ message: "Invalid OTP" });
+    }
+
+    if (!user.resetOtpExpireAt || user.resetOtpExpireAt < Date.now()) {
+      return res.status(400).json({ message: "OTP expired" });
+    }
+
+    // Hash new password
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    user.password = hashedPassword;
+    user.resetOtp = "";
+    user.resetOtpExpireAt = 0;
+    await user.save();
+
+    // ✉️ Send confirmation email (NOT the OTP)
+    const mailOptions = {
+      from: process.env.SENDER_EMAIL,
+      to: user.email,
+      subject: "✅ Your password has been reset",
+      text: `Hello ${user.name || "user"} 👋,
+
+Your password has been successfully reset. If you did not request this change, please contact support immediately.
+
+Cheers,
+The NourheneDevHub Team 💡`,
+    };
+
+    await transporter.sendMail(mailOptions);
+
+    return res.status(200).json({ message: "Password reset successfully ✅" });
+  } catch (error) {
+    console.error("Error resetting password:", error);
+    return res.status(500).json({ message: "Server error", error: error.message });
+  }
+};

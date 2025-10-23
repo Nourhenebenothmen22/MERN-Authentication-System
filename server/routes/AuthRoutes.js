@@ -6,7 +6,8 @@ import {
   sendVerifyOtp,
   verifyEmail,
   checkAuth,
-  sendResetOtp
+  sendResetOtp,
+  resetPassword
 } from "../controllers/userAuth.js";
 import userAuth from "../middlewares/AuthMiddleware.js";
 
@@ -38,5 +39,8 @@ router.get("/check-auth", userAuth, checkAuth);
 
 // 🔄 Send password reset OTP
 router.post("/send-reset-otp", sendResetOtp);
+
+// 🔄 Send password reset OTP to user's email
+router.post("/send-reset-password",resetPassword);
 
 export default router;
