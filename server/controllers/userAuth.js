@@ -202,27 +202,27 @@ export const logout = async (req, res) => {
 };
 export const sendVerifyOtp = async (req, res) => {
   try {
-    const { id } = req.body; // ✅ destructuration
+    const { id } = req.body; // ✅ destructuring
     const user = await User.findById(id);
 
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
 
-    // ✅ si déjà vérifié
+    // ✅ if already verified
     if (user.isAccountVerified) {
       return res.status(400).json({ message: "Account already verified" });
     }
 
-    // ✅ génération OTP 6 chiffres
+    // ✅ generate 6-digit OTP
     const otp = String(Math.floor(100000 + Math.random() * 900000));
 
-    // ✅ assigner OTP et date d’expiration
+    // ✅ assign OTP and expiration date
     user.verifyOtp = otp;
     user.verifyOtpExpireAt = Date.now() + 24 * 60 * 60 * 1000; // 24h
     await user.save();
 
-    // ✅ préparation du mail
+    // ✅ prepare the email
     const mailOptions = {
       from: process.env.SENDER_EMAIL,
       to: user.email,
@@ -239,7 +239,7 @@ Cheers,
 The NourheneDevHub Team 💡`,
     };
 
-    // ✅ envoi du mail
+    // ✅ send the email
     await transporter.sendMail(mailOptions);
 
     return res.status(200).json({
@@ -251,5 +251,45 @@ The NourheneDevHub Team 💡`,
       message: "Server error while sending OTP",
       error: error.message,
     });
+  }
+};
+
+export const verifyEmail = async (req, res) => {
+  try {
+    const { id, otp } = req.body;
+
+    // Check request parameters
+    if (!id || !otp) {
+      return res.status(400).json({ message: "Missing details" });
+    }
+
+    // Check if user exists
+    const user = await User.findById(id);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // Verify OTP
+    if (user.verifyOtp !== otp || !user.verifyOtp.trim()) {
+      return res.status(400).json({ message: "Invalid OTP" });
+    }
+
+    // Check OTP expiration
+    if (user.verifyOtpExpireAt < Date.now()) {
+      return res.status(400).json({ message: "OTP expired" });
+    }
+
+    // All good, verify the account
+    user.isAccountVerified = true;
+    user.verifyOtp = '';
+    user.verifyOtpExpireAt = 0;
+
+    await user.save();
+
+    return res.status(200).json({ message: "Email verified successfully" });
+
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: "Server error" });
   }
 };
