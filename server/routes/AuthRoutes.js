@@ -110,5 +110,7 @@ router.post("/login", login);
 router.post("/logout", logout);
 router.post("/send-verify-otp",sendVerifyOtp)
 router.post('/verify-account',userAuth,verifyEmail)
+router.get("/check-auth",userAuth, checkAuth);
+
 
 export default router;
