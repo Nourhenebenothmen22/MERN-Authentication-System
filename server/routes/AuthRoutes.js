@@ -9,7 +9,8 @@ import {
   sendResetOtp,
   resetPassword,
   getUsers,
-  getUserById
+  getUserById,
+  deleteUser
 } from "../controllers/userAuth.js";
 import userAuth from "../middlewares/AuthMiddleware.js";
 
@@ -50,5 +51,8 @@ router.get("/", userAuth,getUsers);
 
 // 🔹 Get a user by ID (protected route)
 router.get("/:id", userAuth, getUserById);
+
+// 🔹 Delete user by ID (protected route)
+router.delete("/:id", userAuth, deleteUser);
 
 export default router;
